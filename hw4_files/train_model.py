@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import keras
 from keras import Sequential
-from keras.layers import Flatten, Embedding, Dense
+from keras.layers import Flatten, Embedding, Dense, Activation
 
 def build_model(word_types, pos_types, outputs):
 
