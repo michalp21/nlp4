@@ -9,9 +9,9 @@ class State(object):
     def __init__(self, sentence = []):
         self.stack = []
         self.buffer = []
-        if sentence: 
+        if sentence:
             self.buffer = list(reversed(sentence))
-        self.deps = set() 
+        self.deps = set()
     
     def shift(self):
         self.stack.append(self.buffer.pop())
@@ -27,7 +27,7 @@ class State(object):
     def __repr__(self):
         return "{},{},{}".format(self.stack, self.buffer, self.deps)
 
-   
+
 
 def apply_sequence(seq, sentence):
     state = State(sentence)
@@ -112,17 +112,42 @@ class FeatureExtractor(object):
             word, index_s = line.strip().split()
             index = int(index_s)
             vocab[word] = index
-        return vocab     
+        return vocab   
+
+    def get_index(self,pos,stackword):
+        x = -1
+        if not stackword:
+            x = 3
+        elif stackword.lower() in self.word_vocab:
+            x = self.word_vocab[stackword.lower()]
+        elif pos == "NNP":
+            x = 1
+        elif pos == "CD":
+            x = 0
+        else:
+            x = 2
+
+        return x
 
     def get_input_representation(self, words, pos, state):
-        # TODO: Write this method for Part 2
-        return np.zeros(6)
+        input_vec = np.full(6, 4)
 
-    def get_output_representation(self, output_pair):  
-        # TODO: Write this method for Part 2
-        return np.zeros(91)
+        for i in range(1, min(len(state.stack),3)+1):
+            index = state.stack[-i]
+            stackword = words[index]
+            x = self.get_index(pos[index], stackword)
+            input_vec[i-1] = x
 
-     
+        for j in range(1, min(len(state.buffer),3)+1):
+            index = state.buffer[-j]
+            bufferword = words[index]
+            x = self.get_index(pos[index], bufferword)
+            input_vec[j+2] = x
+
+        return input_vec
+
+    def get_output_representation(self, output_pair):
+        return keras.utils.to_categorical(self.output_labels[output_pair], num_classes=91)
     
 def get_training_matrices(extractor, in_file):
     inputs = []
