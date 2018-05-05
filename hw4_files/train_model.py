@@ -13,6 +13,8 @@ def build_model(word_types, pos_types, outputs):
     model.add(Dense(100))
     model.add(Activation('relu'))
     model.add(Dense(10))
+    model.add(Activation('relu'))
+    model.add(Dense(91))
     model.add(Activation('softmax'))
     model.compile(keras.optimizers.Adam(lr=0.01), loss="categorical_crossentropy")
     return model
