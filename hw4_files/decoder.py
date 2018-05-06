@@ -17,13 +17,35 @@ class Parser(object):
         # The following dictionary from indices to output actions will be useful
         self.output_labels = dict([(index, action) for (action, index) in extractor.output_labels.items()])
 
+    def check_action(self, action, state):
+        if len(state.stack) == 0 and action in {"right_arc", "left_arc"}:
+            return False
+        if len(state.stack) > 0 and len(state.buffer) == 1 and action == "shift":
+            return False
+        if len(state.stack) > 0 and state.stack[-1] == 0 and action == "left_arc":
+            return False
+        return True
+
     def parse_sentence(self, words, pos):
         state = State(range(1,len(words)))
-        state.stack.append(0)    
+        state.stack.append(0)
+        while state.buffer:
+            input_vec = self.extractor.get_input_representation(words, pos, state)
+            input_vec = input_vec.reshape((1,6))
+            possible_actions = self.model.predict(input_vec)[0].tolist()
+            sorted_actions = [i[0] for i in sorted(enumerate(possible_actions), \
+                                reverse=True, key=lambda x:x[1])]
+            i=0
+            while not self.check_action(self.output_labels[sorted_actions[i]][0], state):
+                i+=1
 
-        while state.buffer: 
-            pass
-            # TODO: Write the body of this loop for part 4 
+            action, dep_rel = self.output_labels[sorted_actions[i]]
+            if not dep_rel:
+                state.shift()
+            elif action == "left_arc":
+                state.left_arc(dep_rel)
+            elif action == "right_arc":
+                state.right_arc(dep_rel)
 
         result = DependencyStructure()
         for p,c,r in state.deps: 

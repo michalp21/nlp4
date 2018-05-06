@@ -26,7 +26,7 @@ if __name__ == "__main__":
         pos_vocab_f = open(POS_VOCAB_FILE,'r') 
     except FileNotFoundError:
         print("Could not find vocabulary files {} and {}".format(WORD_VOCAB_FILE, POS_VOCAB_FILE))
-        sys.exit(1) 
+        sys.exit(1)
 
     extractor = FeatureExtractor(word_vocab_f, pos_vocab_f)
     parser = Parser(extractor, sys.argv[1])
